@@ -57,4 +57,5 @@ Auto-learning AllowedIPs improves convenience, reduces manual configuration, and
   - Mitigations: enable the token-bucket rate limiting (compile-time `DOS_PROTECTION`). Tune bucket sizes and cleanup intervals in `src/wg-slaacer.conf`. A per-peer concurrent IP limit should be implemented, but so far I haven't found an elegant way to do it (there may not be one), as locking options in eBPF are limited.
 
 **Further reading**
-- Full write-up: https://yourblog.example/post-about-provisioner  (placeholder link)
+- Full write-up:  https://richard.burtons.org/2026/04/27/bringing-slaac-to-wireguard-a-vibe-coding-experiment/ (see my blog)
+
