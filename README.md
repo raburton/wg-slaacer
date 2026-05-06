@@ -12,6 +12,7 @@ Simple eBPF-based helper that watches WireGuard IPv6 address usage and automatic
 - Development tools: `clang`, `gcc`, `make`, `bpftool` in PATH.
 - Libraries: `libbpf` (headers + dev), `libmnl` (dev). On Debian/Ubuntu: `libbpf-dev libmnl-dev`.
 - Root privileges are required for building & loading BPF programs and manipulating WireGuard nets.
+- `radvd` is used to advertise SLAAC to client peers.
 
 **Build**
 ```bash
@@ -29,6 +30,37 @@ sudo make DOS_PROTECTION=0
 sudo make install
 ```
 
+**Config**
+
+Give the server an `fe80::/64` link local address, and a real world address with `<your prefix>/64`. No ipv6 addresses need to added be in AllowedIPs.
+```
+[Interface]
+Address = 192.168.10.1/24, fe80::10:1/64, 2a0a:xxxx:xxxx:xxxx::1/64
+...
+[Peer]
+AllowedIPs = 192.168.10.2/32
+```
+Give the client a link local address too (though it may use SLAAC for this).
+```
+[Interface]
+Address = 192.168.10.2/24, fe80::10:2/64
+...
+```
+Configure `radvd` as follows, in `/etc/radvd.conf`. Unicast mode is essential.
+```
+interface wg1
+{
+        AdvSendAdvert on;
+        IgnoreIfMissing on;
+        UnicastOnly on;
+        prefix 2a0a:xxxx:xxxx:xxxx::/64
+        {
+                AdvOnLink on;
+                AdvAutonomous on;
+        };
+};
+```
+
 **Run**
 
 By default the target WireGuard interface is `wg1`. Copy `src/wg-slaacer.conf` to `/etc/` for adjustable runtime parameters used by the daemon.
@@ -44,7 +76,6 @@ systemctl start  wg-slaacer
 ```bash
 sudo build/wg-slaacer
 ```
-
 
 **Security tradeoffs (auto-learning)**
 
